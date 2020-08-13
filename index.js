@@ -23,45 +23,45 @@ app.get('/ssq', (req, res) => {
 
     //data就是ssqFetch函数执行返回的promise对象
     ssqFetch().then((data) => {
-            //获取后的原始数组
-            let lotteryList = data.result.lotteryResList;
-            //用来保存筛选后的开奖号码
-            let lottery_res = [];
-            //这两个为保存最后筛选出来的红球和蓝球
-            let finalReds = [];
-            let finalBlues = [];
+        //获取后的原始数组
+        let lotteryList = data.result.lotteryResList;
+        //用来保存筛选后的开奖号码
+        let lottery_res = [];
+        //这两个为保存最后筛选出来的红球和蓝球
+        let finalReds = [];
+        let finalBlues = [];
 
-            for (let i = 0; i < lotteryList.length; i++) {
-                lottery_res.push(lotteryList[i].lottery_res.split(','));
-            }
-            let blues = utils.balls(lottery_res);
+        for (let i = 0; i < lotteryList.length; i++) {
+            lottery_res.push(lotteryList[i].lottery_res.split(','));
+        }
+        let blues = utils.balls(lottery_res);
 
-            let newLottery = utils.reduceDimension(lottery_res);
+        let newLottery = utils.reduceDimension(lottery_res);
 
-            //红球
-            for (let i = 0; i < redTimes; i++) {
-                utils.findMax(newLottery, finalReds);
-            }
+        //红球
+        for (let i = 0; i < redTimes; i++) {
+            utils.findMax(newLottery, finalReds);
+        }
 
-            //蓝球
-            for (let i = 0; i < blueTimes; i++) {
-                utils.findMax(blues, finalBlues);
-            }
+        //蓝球
+        for (let i = 0; i < blueTimes; i++) {
+            utils.findMax(blues, finalBlues);
+        }
 
-            //红蓝排序
-            finalReds.sort((a, b) => {
-                return a - b;
-            })
-
-            finalBlues.sort((a, b) => {
-                return a - b;
-            })
-
-            res.send({
-                reds: finalReds,
-                blues: finalBlues
-            })
+        //红蓝排序
+        finalReds.sort((a, b) => {
+            return a - b;
         })
+
+        finalBlues.sort((a, b) => {
+            return a - b;
+        })
+
+        res.send({
+            reds: finalReds,
+            blues: finalBlues
+        })
+    })
         .catch((e) => {
             console.log(e);
         });
@@ -81,46 +81,46 @@ app.get('/dlt', (req, res) => {
 
     //data就是ssqFetch函数执行返回的promise对象
     dltFetch().then((data) => {
-            //获取后的原始数组
-            let lotteryList = data.result.lotteryResList;
-            //用来保存筛选后的开奖号码
-            let lottery_res = [];
-            //这两个为保存最后筛选出来的红球和蓝球
-            let finalReds = [];
-            let finalBlues = [];
+        //获取后的原始数组
+        let lotteryList = data.result.lotteryResList;
+        //用来保存筛选后的开奖号码
+        let lottery_res = [];
+        //这两个为保存最后筛选出来的红球和蓝球
+        let finalReds = [];
+        let finalBlues = [];
 
-            for (let i = 0; i < lotteryList.length; i++) {
-                lottery_res.push(lotteryList[i].lottery_res.split(','));
-            }
-            let blues = utils.balls(lottery_res);
+        for (let i = 0; i < lotteryList.length; i++) {
+            lottery_res.push(lotteryList[i].lottery_res.split(','));
+        }
+        let blues = utils.balls(lottery_res);
 
-            let newLottery = utils.reduceDimension(lottery_res);
+        let newLottery = utils.reduceDimension(lottery_res);
 
-            //红球
-            for (let i = 0; i < redTimes; i++) {
-                utils.findMax(newLottery, finalReds);
-            }
+        //红球
+        for (let i = 0; i < redTimes; i++) {
+            utils.findMax(newLottery, finalReds);
+        }
 
-            //蓝球
-            for (let i = 0; i < blueTimes; i++) {
-                utils.findMax(blues, finalBlues);
-            }
+        //蓝球
+        for (let i = 0; i < blueTimes; i++) {
+            utils.findMax(blues, finalBlues);
+        }
 
-            //红蓝排序
-            finalReds.sort((a, b) => {
-                return a - b;
-            })
-
-            finalBlues.sort((a, b) => {
-                return a - b;
-            })
-
-            //返回结果
-            res.send({
-                reds: finalReds,
-                blues: finalBlues
-            })
+        //红蓝排序
+        finalReds.sort((a, b) => {
+            return a - b;
         })
+
+        finalBlues.sort((a, b) => {
+            return a - b;
+        })
+
+        //返回结果
+        res.send({
+            reds: finalReds,
+            blues: finalBlues
+        })
+    })
         .catch((e) => {
             console.log(e);
         });
@@ -150,14 +150,51 @@ app.get('/exchange', (req, res) => {
     }
 })
 
-// const certs = {
-//     key: fs.readFileSync('./certs/private.key'),
-//     cert: fs.readFileSync('./certs/certificate.crt')
-// }
+//驾照题库
+let questions = [];
+app.get('/question', (req, res) => {
+    let queryParam = req.url.split('?')[1];
+    let subject = queryParam.split('&')[0].split('=')[1];
+    //第一次请求进来 /question?subject=1&model=c1
+    //请求到所有题目后保存到questions中 然后每次额外请求都返回前10个结果
+    if (subject == 1) {
+        let model = queryParam.split('&')[1].split('=')[1];
+        let questionFetch = async () => {
+            let response = await fetch(`http://v.juhe.cn/jztk/query?key=844c85c418e54e483be4164f91ba6392&subject=${subject}&model=${model}&testType=order`);
+            return response.json();
+        }
+        questionFetch().then((data => {
+            questions = data.result;
+            let result = questions.splice(0, 10);
+            res.send(result);
+        }))
+    } else {
+        let questionFetch = async () => {
+            let response = await fetch(`http://v.juhe.cn/jztk/query?key=844c85c418e54e483be4164f91ba6392&subject=${subject}&testType=order`);
+            return response.json();
+        }
+        questionFetch().then((data => {
+            questions = data.result;
+            let result = questions.splice(0, 10);
+            res.send(result);
+        }))
+    }
+})
+
+//底部加载更多题目 每次返回10题
+app.get('/moreQuestion', (req, res) => {
+    let moreResult = questions.splice(0, 10);
+    res.send(moreResult);
+})
+
+const certs = {
+    key: fs.readFileSync('./certs/private.key'),
+    cert: fs.readFileSync('./certs/certificate.crt')
+}
 
 app.listen('3000', () => {
     console.log('running');
 })
 
 http.createServer(app).listen(88);
-// https.createServer(certs, app).listen(1234);
+https.createServer(certs, app).listen(1234);
