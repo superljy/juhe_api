@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "juhe_api",
   "version": "",
   "dependencies": {
     "dotenv": "^8.2.0",
